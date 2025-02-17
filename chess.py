@@ -41,8 +41,8 @@ def load_high_score():
 
 
 def save_high_score(score):
-    with open("highscore.txt", "w") as file:
-        file.write(str(score))
+     with open("highscore.txt", "w") as file:
+         file.write(str(score))
 
 def init_grid():
     grid = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
@@ -56,10 +56,12 @@ def add_new_tile(grid):
         r, c = random.choice(empty_cells)
         grid[r][c] = 2 if random.random() < 0.9 else 4
 
-def draw_grid(grid, score):
+def draw_grid(grid, score, high_score):
     screen.fill((50, 50, 50))
     score_text = SCORE_FONT.render(f"Score: {score}", True, (255, 255, 255))
+    high_score_text = SCORE_FONT.render(f"High Score: {high_score}", True, (255, 255, 0))
     screen.blit(score_text, (10, 10))
+    screen.blit(high_score_text, (WIDTH - 250, 10))
     for r in range(GRID_SIZE):
         for c in range(GRID_SIZE):
             value = grid[r][c]
@@ -114,20 +116,25 @@ def is_game_over(grid):
                 return False
     return True
 
-def game_over_screen():
+def game_over_screen(score):
     screen.fill((30, 30, 30))
     text = FONT.render("Game Over!", True, (255, 0, 0))
-    restart_text = SCORE_FONT.render("Press R to Restart or Q to Quit", True, (255, 255, 255))
-    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - 50))
-    screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2))
+    score_text = FONT.render(f"Your Score: {score}", True, (255, 255, 255))
+    high_score_text = FONT.render(f"High Score: {load_high_score()}", True, (255, 255, 0))
+    restart_text = SCORE_FONT.render("Press R to Restart or Q to Quit",True, (255, 255,255))
+    screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - 100))
+    screen.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, HEIGHT // 2 - 50))
+    screen.blit(high_score_text, (WIDTH // 2 - high_score_text.get_width() // 2, HEIGHT // 2))
+    screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2 + 50))
     pygame.display.flip()
 
 def main():
     grid = init_grid()
     score = 0
+    high_score = load_high_score()
     running = True
     while running:
-        draw_grid(grid, score)
+        draw_grid(grid, score, high_score)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -143,9 +150,12 @@ def main():
                 else:
                     continue
                 score += gained_score
+                if score > high_score:
+                    high_score = score
+                    save_high_score(high_score)
                 add_new_tile(grid)
                 if is_game_over(grid):
-                    game_over_screen()
+                    game_over_screen(score)
                     waiting = True
                     while waiting:
                         for event in pygame.event.get():
